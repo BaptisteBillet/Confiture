@@ -20,7 +20,7 @@ public class PlayerMove : MonoBehaviour {
 
 	public float m_CurrentSpeed = 0.0f;
 
-
+    private int m_DistanceCase=1;
 
     public enum Direction
     {
@@ -31,10 +31,16 @@ public class PlayerMove : MonoBehaviour {
         Right
     }
 
+    
+    //Can go
+    public bool m_CanGoUp = true;
+    public bool m_CanGoDown = true;
+    public bool m_CanGoLeft = true;
+    public bool m_CanGoRight = true;
+    
 
-	//Imput
-	public bool m_IsStarted;
-	private bool m_isInputDetected = true;
+    //Imput
+    public bool m_IsStarted;
 
     public Direction m_Direction;
     public Direction m_MovingDirection;
@@ -46,8 +52,17 @@ public class PlayerMove : MonoBehaviour {
 	//Animator
 	Animator m_Animator;
 
-	// Use this for initialization
-	void Start () 
+    //Slide Lerp
+    private Vector3 m_StartMarker = new Vector3();
+    private Vector3 m_EndMarker = new Vector3();
+    private float m_SpeedLerp = 5;
+    private float m_StartTime;
+    private float m_JourneyLength;
+
+
+
+    // Use this for initialization
+    void Start () 
 	{
         m_Player = GetComponent<Player>();
 
@@ -72,225 +87,175 @@ public class PlayerMove : MonoBehaviour {
 
 	void InputDetection()
 	{
+        #region old
 
-		if (m_isInputDetected)
-		{
-			#region Gamepad
-			if ((Input.GetAxis("L_XAxis_" + m_Player.m_PlayerNumber.ToString()) < 0)&& (m_MovingDirection == Direction.Left || m_MovingDirection == Direction.Stop))
-			{
-                
-                m_Direction = Direction.Left;
-			}
-			else
-			{
-                if ((Input.GetAxis("L_XAxis_" + m_Player.m_PlayerNumber.ToString()) > 0)&& (m_MovingDirection == Direction.Right || m_MovingDirection == Direction.Stop))
-                {
-                    
-                        m_Direction = Direction.Right;
-                }
-                else
-                {
-                    if ((Input.GetAxis("L_YAxis_" + m_Player.m_PlayerNumber.ToString()) < 0)&& (m_MovingDirection == Direction.Up || m_MovingDirection == Direction.Stop))
-                    {
-      
-                            m_Direction = Direction.Up; 
-                    }
-                    else
-                    {
-                        if ((Input.GetAxis("L_YAxis_" + m_Player.m_PlayerNumber.ToString()) > 0)&& (m_MovingDirection == Direction.Down || m_MovingDirection == Direction.Stop))
-                        {
-                        
-                                m_Direction = Direction.Down;
-                        }
-                        else
-                        {
-                            m_Direction = Direction.Stop;
-                        }
-                    }
-                   
-                }
-               
-
-            }
-			
-			#endregion
-
-			
-		}
-
-	}
-
-	
-	void Update()
-	{
-
-		//QuickFix de la position en Y
-		transform.position = new Vector3(transform.position.x, 0, transform.position.z);
-		//////Code QTE demarrage Tondeuse
-
-		//Get the Input
-		InputDetection();
-
-        //Move the mower
-
-
-        m_Speed = m_MaxSpeed;
-
-        switch (m_Direction)
+        if ((Input.GetAxis("L_XAxis_" + m_Player.m_PlayerNumber.ToString()) < 0) && m_CanGoLeft)
         {
-            case Direction.Stop:
-                m_Speed = 0;
+            m_Direction = Direction.Left;
+            StartLerpPlayer();
+            
+        }
+        if ((Input.GetAxis("L_XAxis_" + m_Player.m_PlayerNumber.ToString()) > 0) && m_CanGoRight)
+        {
+            m_Direction = Direction.Right;
+            StartLerpPlayer();
+          
+        }
 
-                switch(m_MovingDirection)
-                {
-                    case Direction.Up:
-                        if (transform.position.z >= m_Aim.z && m_IsMoving)
-                        {
-                            transform.position = m_Aim;
-                            m_IsMoving = false;
-                            m_MovingDirection = Direction.Stop;
+        if ((Input.GetAxis("L_YAxis_" + m_Player.m_PlayerNumber.ToString()) < 0) && m_CanGoUp)
+        {
+            m_Direction = Direction.Up;
+            StartLerpPlayer();
+        }
 
-                        }
-                        break;
+        if ((Input.GetAxis("L_YAxis_" + m_Player.m_PlayerNumber.ToString()) > 0) && m_CanGoDown)
+        {
+            m_Direction = Direction.Down;
+            StartLerpPlayer();
+        }
 
-                    case Direction.Down:
-                        if (transform.position.z <= m_Aim.z && m_IsMoving)
-                        {
-                            transform.position = m_Aim;
-                            m_IsMoving = false;
-                            m_MovingDirection = Direction.Stop;
+        
+        #endregion
+    }
 
-                        }
-                        break;
+    #region ChangePosition
+    public void StartLerpPlayer()
+    {
+        m_IsMoving = true;
 
-                    case Direction.Left:
-                        if (transform.position.x <= m_Aim.x && m_IsMoving)
-                        {
-                            transform.position = m_Aim;
-                            m_IsMoving = false;
-                            m_MovingDirection = Direction.Stop;
+        m_StartTime = Time.time;
 
-                        }
-                        break;
-                    case Direction.Right:
-                        if (transform.position.x >= m_Aim.x && m_IsMoving)
-                        {
-                            transform.position = m_Aim;
-                            m_IsMoving = false;
-                            m_MovingDirection = Direction.Stop;
+        m_StartMarker = transform.position;
 
-                        }
-                        break;
-                }
-
-               
-                break;
-
+        switch(m_Direction)
+        {
             case Direction.Up:
+                m_EndMarker = new Vector3(m_StartMarker.x, m_StartMarker.y, m_StartMarker.z+m_DistanceCase);
                 transform.eulerAngles = new Vector3(0, 0, 0);
-
-                
-                if (m_MovingDirection == Direction.Stop)
-                {
-                    m_Aim = new Vector3(transform.position.x, transform.position.y, transform.position.z+3);
-                    //m_Aim += new Vector3(0, 0, 3);
-                    m_IsMoving = true;
-                    m_MovingDirection = Direction.Up;
-                }
-                else
-                {
-                    if (m_MovingDirection == Direction.Up)
-                    if (transform.position.z >= m_Aim.z && m_IsMoving)
-                    {
-                        transform.position = m_Aim;
-                        m_Aim = new Vector3(transform.position.x, transform.position.y, transform.position.z+3);
-                    }
-                }
-
-               
                 break;
 
             case Direction.Down:
+                m_EndMarker = new Vector3(m_StartMarker.x, m_StartMarker.y, m_StartMarker.z - m_DistanceCase);
                 transform.eulerAngles = new Vector3(0, 180, 0);
-
-                if (m_MovingDirection == Direction.Stop)
-                {
-                    m_Aim = new Vector3(transform.position.x, transform.position.y, transform.position.z - 3);
-                    //m_Aim += new Vector3(0, 0, 3);
-                    m_IsMoving = true;
-                    m_MovingDirection = Direction.Down;
-                }
-                else
-                {
-                    if (m_MovingDirection == Direction.Down)
-                        if (transform.position.z <= m_Aim.z && m_IsMoving)
-                    {
-                        transform.position = m_Aim;
-                        m_Aim = new Vector3(transform.position.x, transform.position.y, transform.position.z - 3);
-                    }
-                }
                 break;
 
             case Direction.Left:
+                m_EndMarker = new Vector3(m_StartMarker.x - m_DistanceCase, m_StartMarker.y, m_StartMarker.z);
                 transform.eulerAngles = new Vector3(0, -90, 0);
-
-
-                if (m_MovingDirection == Direction.Stop)
-                {
-                    m_Aim = new Vector3(transform.position.x-3, transform.position.y, transform.position.z);
-                    //m_Aim += new Vector3(0, 0, 3);
-                    m_IsMoving = true;
-                    m_MovingDirection = Direction.Left;
-                }
-                else
-                {
-                    if (m_MovingDirection == Direction.Left)
-                    if (transform.position.x <= m_Aim.x && m_IsMoving)
-                    {
-                        transform.position = m_Aim;
-                        m_Aim = new Vector3(transform.position.x-3, transform.position.y, transform.position.z);
-                    }
-                }
                 break;
-                
 
             case Direction.Right:
+                m_EndMarker = new Vector3(m_StartMarker.x + m_DistanceCase, m_StartMarker.y, m_StartMarker.z);
                 transform.eulerAngles = new Vector3(0, 90, 0);
-                if (m_MovingDirection == Direction.Stop)
-                {
-                    m_Aim = new Vector3(transform.position.x + 3, transform.position.y, transform.position.z);
-                    m_IsMoving = true;
-                    m_MovingDirection = Direction.Right;
-                }
-                else
-                {
-                    if (m_MovingDirection == Direction.Right)
-                        if (transform.position.x >= m_Aim.x && m_IsMoving)
-                    {
-                        transform.position = m_Aim;
-                        m_Aim = new Vector3(transform.position.x + 3, transform.position.y, transform.position.z);
-                    }
-                }
                 break;
-                
         }
 
-        if (m_IsMoving==true)
+        
+
+        m_JourneyLength = Vector3.Distance(m_StartMarker, m_EndMarker);
+
+        StartCoroutine(LerpPlayer());
+    }
+
+    IEnumerator LerpPlayer()
+    {
+        while (transform.position != m_EndMarker)
         {
-                m_CurrentSpeed += (m_Speed) * Time.deltaTime;
+            float distCovered = (Time.time - m_StartTime) * m_SpeedLerp;
+            float fracJourney = distCovered / m_JourneyLength;
+            transform.position = Vector3.Lerp(m_StartMarker, m_EndMarker, fracJourney);
 
-                m_Rigidbody.velocity = transform.forward * m_CurrentSpeed;
+            yield return new WaitForEndOfFrame();
+        }
+        m_Direction = Direction.Stop;
+        m_IsMoving = false;
+    }
+    #endregion
 
-                m_CurrentSpeed = Mathf.Clamp(m_CurrentSpeed, 0, m_MaxSpeed);
-            
+
+    void Update()
+	{
+        /*
+        //CheckForObstacle();
+        Displacement();
+        m_MovingDirection = Direction.Stop;
+        Debug.DrawLine(transform.position, new Vector3(transform.position.x, transform.position.y, transform.position.z+1), Color.red);
+        */
+
+        if(m_IsMoving==false)
+        {
+            CheckForObstacle();
+            InputDetection();
+        }
+
+    }
+
+    void CheckForObstacle()
+    {
+        RaycastHit hit;
+
+        if (Physics.Raycast(transform.position, Vector3.forward, out hit, 1))
+        {
+            m_CanGoUp = false;   
+
+            /*
+            if (m_MovingDirection == Direction.Up)
+            {
+                m_MovingDirection = Direction.Stop;
+            }*/
         }
         else
         {
-            m_Rigidbody.velocity = Vector3.zero;
+            m_CanGoUp = true;
         }
+
+        if (Physics.Raycast(transform.position, Vector3.back, out hit, 1))
+        {
+            /*
+            if (m_MovingDirection == Direction.Down)
+            {
+                m_MovingDirection = Direction.Stop;
+            }*/
+            m_CanGoDown = false;
+        }
+        else
+        {
+            m_CanGoDown = true;
+        }
+
+        if (Physics.Raycast(transform.position, Vector3.left, out hit, 1))
+        {
+            /*
+            if (m_MovingDirection == Direction.Left)
+            {
+                m_MovingDirection = Direction.Stop;
+            }*/
+            m_CanGoLeft = false;
+        }
+        else
+        {
+            m_CanGoLeft = true;
+        }
+
+        if (Physics.Raycast(transform.position, Vector3.right, out hit, 1))
+        {
+            /*
+            if (m_MovingDirection == Direction.Right)
+            {
+                m_MovingDirection = Direction.Stop;
+            }
+            */
+            m_CanGoRight = false;
+        }
+        else
+        {
+            m_CanGoRight = true;
+        }
+
     }
 
 
+   
 }
 
 /* BUTTON
