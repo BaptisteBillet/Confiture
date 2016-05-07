@@ -40,8 +40,8 @@ public class LevelGeneratorWindow : EditorWindow
 
     void OnGUI()
     {
-        m_EmptyTile = (Material)Resources.Load("m_EmptyTile");
-        m_EmptyTile2 = (Material)Resources.Load("m_EmptyTile2");
+        m_EmptyTile = (Material)Resources.Load("M_EmptyTile");
+        m_EmptyTile2 = (Material)Resources.Load("M_EmptyTile2");
         m_TilePrefab = Resources.Load("SM_Tile") as GameObject;
         m_LevelHolder = GameObject.Find("LevelHolder");
         m_Grid = GameObject.Find("Grid");
@@ -150,7 +150,7 @@ public class LevelGeneratorWindow : EditorWindow
         #endregion
 
         #region Tile Grid
-        /*m_TiledGrid = EditorGUILayout.Toggle("Tiled Grid", m_TiledGrid);
+        m_TiledGrid = EditorGUILayout.Toggle("Tiled Grid", m_TiledGrid);
 
         if(!m_TiledGrid)
         {
@@ -160,6 +160,7 @@ public class LevelGeneratorWindow : EditorWindow
                 for (int j = 0; j < m_Map[0].Count; j++)
                 {
                     m_Map[i][j].GetComponent<Renderer>().material = m_EmptyTile;
+
                 }
             }
         }
@@ -170,28 +171,17 @@ public class LevelGeneratorWindow : EditorWindow
             {
                 for (int j = 0; j < m_Map[0].Count; j++)
                 {
-                    if(m_Map[i][j].GetComponent<LevelDesignTool>().m_tileEtat == LevelDesignTool.Etat.EMPTY)
+                    if ((m_Map[i][j].transform.position.x % 2 == 0 && m_Map[i][j].transform.position.z % 2 == 0) || (m_Map[i][j].transform.position.x % 2 != 0 && m_Map[i][j].transform.position.z % 2 != 0))
                     {
-                        if (m_Map[i][j].GetComponent<Renderer>().sharedMaterial.name.Contains("m_EmptyTile") && (m_Map[i][j].gridPosition.x + m_Map[i][j].gridPosition.y) % 2 == 1)
-                        {
-                            m_Map[i][j].GetComponent<Renderer>().material = m_EmptyTile;
-                        }
-                        else if (m_Map[i][j].GetComponent<Renderer>().sharedMaterial.name.Contains("m_EmptyTile"))
-                        {
-                            m_Map[i][j].GetComponent<Renderer>().material = m_EmptyTile2;
-                        }
-                    }
-                    else if(m_Map[i][j].GetComponent<LevelDesignTool>().m_tileEtat == LevelDesignTool.Etat.TALL_WALL)
-                    {
-                        m_Map[i][j].GetComponent<Renderer>().material = m_TallWall;
+                        m_Map[i][j].GetComponent<Renderer>().material = m_EmptyTile;
                     }
                     else
                     {
-                        m_Map[i][j].GetComponent<Renderer>().material = m_SmallWall;
+                        m_Map[i][j].GetComponent<Renderer>().material = m_EmptyTile2;
                     }
                 }
             }
-        }*/
+        }
         #endregion
 
         #region Add Buttons
