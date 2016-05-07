@@ -69,8 +69,8 @@ public class LevelGeneratorWindow : EditorWindow
                 m_LevelHolder = new GameObject("LevelHolder");
                 m_Grid = new GameObject("Grid");
                 m_Grid.transform.parent = m_LevelHolder.transform;
-                m_WallHolder = new GameObject("WallHolder");
-                m_WallHolder.transform.parent = m_LevelHolder.transform;
+                //m_WallHolder = new GameObject("WallHolder");
+                //m_WallHolder.transform.parent = m_LevelHolder.transform;
 
                 for (int x = 0; x < m_ColumnsNumber; ++x)
                 {
@@ -85,11 +85,13 @@ public class LevelGeneratorWindow : EditorWindow
                                     new Quaternion());
                         t.transform.parent = _columnParent.transform;
                         _column.Add(t);
+
                     }
                     _columnParent.transform.parent = m_Grid.transform;
                     m_Map.Add(_column);
                 }
                 FillList();
+                m_LevelHolder.transform.position = new Vector3(0, -1, 0);
                 //GridTiling();
                 //GameObject.Find("Game").GetComponent<GameManager>().m_OffsetX = 0;
                 //GameObject.Find("Game").GetComponent<GameManager>().m_OffsetY = 0;
