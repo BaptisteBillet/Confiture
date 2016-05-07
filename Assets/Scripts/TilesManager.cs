@@ -20,13 +20,10 @@ public class TilesManager : MonoBehaviour {
             List<TilesBehavior> _listTemp = new List<TilesBehavior>();
             for (int j = 0; j < m_ListColumns[0].transform.childCount; j++)
             {
-                //Debug.Log(m_ListColumns[i].transform.GetChild(j).transform.position);
                 _listTemp.Add(m_ListColumns[i].transform.GetChild(j).GetComponent<TilesBehavior>());
             }
             m_ListTiles.Add(_listTemp);
         }
-
-        Debug.Log(m_ListTiles[8][5].transform.position);
 	}
 	
 	// Update is called once per frame

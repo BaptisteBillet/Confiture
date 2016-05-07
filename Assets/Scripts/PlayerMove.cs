@@ -31,8 +31,9 @@ public class PlayerMove : MonoBehaviour {
         Right
     }
 
-    
+
     //Can go
+    public LayerMask m_LayerMaskObstacle;
     public bool m_CanGoUp = true;
     public bool m_CanGoDown = true;
     public bool m_CanGoLeft = true;
@@ -194,7 +195,7 @@ public class PlayerMove : MonoBehaviour {
     {
         RaycastHit hit;
 
-        if (Physics.Raycast(transform.position, Vector3.forward, out hit, 1))
+        if (Physics.Raycast(transform.position, Vector3.forward, out hit, 1, m_LayerMaskObstacle))
         {
             m_CanGoUp = false;   
 
@@ -209,7 +210,7 @@ public class PlayerMove : MonoBehaviour {
             m_CanGoUp = true;
         }
 
-        if (Physics.Raycast(transform.position, Vector3.back, out hit, 1))
+        if (Physics.Raycast(transform.position, Vector3.back, out hit, 1, m_LayerMaskObstacle))
         {
             /*
             if (m_MovingDirection == Direction.Down)
@@ -223,7 +224,7 @@ public class PlayerMove : MonoBehaviour {
             m_CanGoDown = true;
         }
 
-        if (Physics.Raycast(transform.position, Vector3.left, out hit, 1))
+        if (Physics.Raycast(transform.position, Vector3.left, out hit, 1, m_LayerMaskObstacle))
         {
             /*
             if (m_MovingDirection == Direction.Left)
@@ -237,7 +238,7 @@ public class PlayerMove : MonoBehaviour {
             m_CanGoLeft = true;
         }
 
-        if (Physics.Raycast(transform.position, Vector3.right, out hit, 1))
+        if (Physics.Raycast(transform.position, Vector3.right, out hit, 1, m_LayerMaskObstacle))
         {
             /*
             if (m_MovingDirection == Direction.Right)

@@ -19,7 +19,7 @@ public class PlayerTilesCheck : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-        if (!m_PlayerMove.m_IsMoving)
+        /*if (!m_PlayerMove.m_IsMoving)
         {
             switch (m_TilesManager.m_ListTiles[(int)transform.position.x][(int)transform.position.z].m_State)
             {
@@ -38,6 +38,6 @@ public class PlayerTilesCheck : MonoBehaviour {
                     break;
             }
 
-        }
+        }*/
 	}
 }
