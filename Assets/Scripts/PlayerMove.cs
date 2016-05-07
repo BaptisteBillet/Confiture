@@ -14,30 +14,34 @@ public class PlayerMove : MonoBehaviour {
 	//private int m_PlayerId;
 
 	// Displacement
-	public float m_BaseSpeed;
 	public float m_MaxSpeed;
-	public float m_MinSpeed;
-	public float m_Accel;
-	public float m_Deccel;
+	public float m_Speed;
 	public Vector3 m_DisplacementDirection;
 
 	public float m_CurrentSpeed = 0.0f;
-	public float m_CurrentRotation = 0.0f;
 
-	//Rotating speed
-	public float m_RotateSpeed;
+
+
+    public enum Direction
+    {
+        Stop,
+        Up,
+        Down,
+        Left,
+        Right
+    }
+
 
 	//Imput
 	public bool m_IsStarted;
 	private bool m_isInputDetected = true;
-	private bool m_UpImput;
-	private bool m_DownImput;
-	private bool m_LeftImput;
-	private bool m_RightImput;
 
-	//Movement State
-	public bool m_IsRotatingLeft;
-	public bool m_IsRotatingRight;
+    public Direction m_Direction;
+    public Direction m_MovingDirection;
+
+    //Destination Vector
+    public Vector3 m_Aim;
+    public bool m_IsMoving=false;
 
 	//Animator
 	Animator m_Animator;
@@ -52,17 +56,19 @@ public class PlayerMove : MonoBehaviour {
 		m_Rigidbody = GetComponent<Rigidbody>();
 
 		InitializeInput();
-	
-	}
+
+        m_Aim = transform.position;
+        transform.position = Vector3.zero;
+
+    }
 
 	void InitializeInput()
 	{
 		m_IsStarted = false;
-		m_UpImput = false;
-		m_DownImput = false;
-		m_LeftImput = false;
-		m_RightImput = false;
-	}
+        m_Direction = Direction.Stop;
+        m_MovingDirection = Direction.Stop;
+        transform.position = Vector3.zero;
+    }
 
 	void InputDetection()
 	{
@@ -70,114 +76,51 @@ public class PlayerMove : MonoBehaviour {
 		if (m_isInputDetected)
 		{
 			#region Gamepad
-			if (Input.GetAxis("L_XAxis_" + m_Player.m_PlayerNumber.ToString()) < 0)
+			if ((Input.GetAxis("L_XAxis_" + m_Player.m_PlayerNumber.ToString()) < 0)&& (m_MovingDirection == Direction.Left || m_MovingDirection == Direction.Stop))
 			{
-				m_LeftImput = true;
+                
+                m_Direction = Direction.Left;
 			}
 			else
 			{
-				m_LeftImput = false;
+                if ((Input.GetAxis("L_XAxis_" + m_Player.m_PlayerNumber.ToString()) > 0)&& (m_MovingDirection == Direction.Right || m_MovingDirection == Direction.Stop))
+                {
+                    
+                        m_Direction = Direction.Right;
+                }
+                else
+                {
+                    if ((Input.GetAxis("L_YAxis_" + m_Player.m_PlayerNumber.ToString()) < 0)&& (m_MovingDirection == Direction.Up || m_MovingDirection == Direction.Stop))
+                    {
+      
+                            m_Direction = Direction.Up; 
+                    }
+                    else
+                    {
+                        if ((Input.GetAxis("L_YAxis_" + m_Player.m_PlayerNumber.ToString()) > 0)&& (m_MovingDirection == Direction.Down || m_MovingDirection == Direction.Stop))
+                        {
+                        
+                                m_Direction = Direction.Down;
+                        }
+                        else
+                        {
+                            m_Direction = Direction.Stop;
+                        }
+                    }
+                   
+                }
+               
 
-			}
-			if (Input.GetAxis("L_XAxis_" + m_Player.m_PlayerNumber.ToString()) > 0)
-			{
-				m_RightImput = true;
-			}
-			else
-			{
-				m_RightImput = false;
-			}
-			if (Input.GetAxis("L_YAxis_" + m_Player.m_PlayerNumber.ToString()) < 0)
-			{
-				m_UpImput = true;
-			}
-			else
-			{
-				m_UpImput = false;
-			}
-			if (Input.GetAxis("L_YAxis_" + m_Player.m_PlayerNumber.ToString()) > 0)
-			{
-				m_DownImput = true;
-			}
-			else
-			{
-				m_DownImput = false;
-			}
+            }
+			
 			#endregion
 
-			#region Keyboard
-			if (Input.GetKey("up"))
-			{
-				m_UpImput = true;
-			}
-			if (Input.GetKeyUp("up"))
-			{
-				m_UpImput = false;
-			}
-
-			if (Input.GetKey("down"))
-			{
-				m_DownImput = true;
-			}
-			if (Input.GetKeyUp("down"))
-			{
-				m_DownImput = false;
-			}
-			if (Input.GetKey("left"))
-			{
-				m_LeftImput = true;
-			}
-			if (Input.GetKeyUp("left"))
-			{
-				m_LeftImput = false;
-			}
-
-			if (Input.GetKey("right"))
-			{
-				m_RightImput = true;
-			}
-			if (Input.GetKeyUp("right"))
-			{
-				m_RightImput = false;
-			}
-			#endregion
+			
 		}
 
 	}
 
-	void RotateTheMower()
-	{
-		m_Rigidbody.angularVelocity = Vector3.zero;
-		if (m_LeftImput ^ m_RightImput)
-		{
-				if (m_LeftImput && !m_RightImput)
-				{
-					//Rotate Left
-					transform.Rotate(Vector3.down, m_RotateSpeed * Time.deltaTime);
-
-					m_IsRotatingLeft = true;
-					m_IsRotatingRight = false;
-
-				}
-
-				if (!m_LeftImput && m_RightImput)
-				{
-					//Rotate Right
-					transform.Rotate(Vector3.up, m_RotateSpeed * Time.deltaTime);
-
-					m_IsRotatingLeft = false;
-					m_IsRotatingRight = true;
-				}
-
-		}
-		else
-		{
-			//Is not rotating
-			m_IsRotatingLeft = false;
-			m_IsRotatingRight = false;
-		}
-	}
-
+	
 	void Update()
 	{
 
@@ -188,17 +131,164 @@ public class PlayerMove : MonoBehaviour {
 		//Get the Input
 		InputDetection();
 
-		//Set the rotation
-		RotateTheMower();
+        //Move the mower
 
-		//Move the mower
-		m_CurrentSpeed += m_Accel * Time.deltaTime;
-		
-		m_Rigidbody.velocity = transform.forward * m_CurrentSpeed;
-		
-		m_CurrentSpeed = Mathf.Clamp(m_CurrentSpeed, m_MinSpeed, m_MaxSpeed);
-		
-	}
+
+        m_Speed = m_MaxSpeed;
+
+        switch (m_Direction)
+        {
+            case Direction.Stop:
+                m_Speed = 0;
+
+                switch(m_MovingDirection)
+                {
+                    case Direction.Up:
+                        if (transform.position.z >= m_Aim.z && m_IsMoving)
+                        {
+                            transform.position = m_Aim;
+                            m_IsMoving = false;
+                            m_MovingDirection = Direction.Stop;
+
+                        }
+                        break;
+
+                    case Direction.Down:
+                        if (transform.position.z <= m_Aim.z && m_IsMoving)
+                        {
+                            transform.position = m_Aim;
+                            m_IsMoving = false;
+                            m_MovingDirection = Direction.Stop;
+
+                        }
+                        break;
+
+                    case Direction.Left:
+                        if (transform.position.x <= m_Aim.x && m_IsMoving)
+                        {
+                            transform.position = m_Aim;
+                            m_IsMoving = false;
+                            m_MovingDirection = Direction.Stop;
+
+                        }
+                        break;
+                    case Direction.Right:
+                        if (transform.position.x >= m_Aim.x && m_IsMoving)
+                        {
+                            transform.position = m_Aim;
+                            m_IsMoving = false;
+                            m_MovingDirection = Direction.Stop;
+
+                        }
+                        break;
+                }
+
+               
+                break;
+
+            case Direction.Up:
+                transform.eulerAngles = new Vector3(0, 0, 0);
+
+                
+                if (m_MovingDirection == Direction.Stop)
+                {
+                    m_Aim = new Vector3(transform.position.x, transform.position.y, transform.position.z+3);
+                    //m_Aim += new Vector3(0, 0, 3);
+                    m_IsMoving = true;
+                    m_MovingDirection = Direction.Up;
+                }
+                else
+                {
+                    if (m_MovingDirection == Direction.Up)
+                    if (transform.position.z >= m_Aim.z && m_IsMoving)
+                    {
+                        transform.position = m_Aim;
+                        m_Aim = new Vector3(transform.position.x, transform.position.y, transform.position.z+3);
+                    }
+                }
+
+               
+                break;
+
+            case Direction.Down:
+                transform.eulerAngles = new Vector3(0, 180, 0);
+
+                if (m_MovingDirection == Direction.Stop)
+                {
+                    m_Aim = new Vector3(transform.position.x, transform.position.y, transform.position.z - 3);
+                    //m_Aim += new Vector3(0, 0, 3);
+                    m_IsMoving = true;
+                    m_MovingDirection = Direction.Down;
+                }
+                else
+                {
+                    if (m_MovingDirection == Direction.Down)
+                        if (transform.position.z <= m_Aim.z && m_IsMoving)
+                    {
+                        transform.position = m_Aim;
+                        m_Aim = new Vector3(transform.position.x, transform.position.y, transform.position.z - 3);
+                    }
+                }
+                break;
+
+            case Direction.Left:
+                transform.eulerAngles = new Vector3(0, -90, 0);
+
+
+                if (m_MovingDirection == Direction.Stop)
+                {
+                    m_Aim = new Vector3(transform.position.x-3, transform.position.y, transform.position.z);
+                    //m_Aim += new Vector3(0, 0, 3);
+                    m_IsMoving = true;
+                    m_MovingDirection = Direction.Left;
+                }
+                else
+                {
+                    if (m_MovingDirection == Direction.Left)
+                    if (transform.position.x <= m_Aim.x && m_IsMoving)
+                    {
+                        transform.position = m_Aim;
+                        m_Aim = new Vector3(transform.position.x-3, transform.position.y, transform.position.z);
+                    }
+                }
+                break;
+                
+
+            case Direction.Right:
+                transform.eulerAngles = new Vector3(0, 90, 0);
+                if (m_MovingDirection == Direction.Stop)
+                {
+                    m_Aim = new Vector3(transform.position.x + 3, transform.position.y, transform.position.z);
+                    m_IsMoving = true;
+                    m_MovingDirection = Direction.Right;
+                }
+                else
+                {
+                    if (m_MovingDirection == Direction.Right)
+                        if (transform.position.x >= m_Aim.x && m_IsMoving)
+                    {
+                        transform.position = m_Aim;
+                        m_Aim = new Vector3(transform.position.x + 3, transform.position.y, transform.position.z);
+                    }
+                }
+                break;
+                
+        }
+
+        if (m_IsMoving==true)
+        {
+                m_CurrentSpeed += (m_Speed) * Time.deltaTime;
+
+                m_Rigidbody.velocity = transform.forward * m_CurrentSpeed;
+
+                m_CurrentSpeed = Mathf.Clamp(m_CurrentSpeed, 0, m_MaxSpeed);
+            
+        }
+        else
+        {
+            m_Rigidbody.velocity = Vector3.zero;
+        }
+    }
 
 
 }
